@@ -24,10 +24,6 @@ Route::get('/test-web', function () {
     return response()->json(['status' => 'web ok']);
 });
 
-Route::get('/api/test', function () {
-    return response()->json(['status' => 'api ok']);
-});
-
-Route::get('/api/test', function () {
+Route::get('/test-api', function () {
     return response()->json(['status' => 'api ok']);
 });
