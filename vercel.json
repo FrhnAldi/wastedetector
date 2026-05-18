@@ -2,15 +2,11 @@
   "version": 2,
   "builds": [
     {
-      "src": "api/index.php",
+      "src": "handler/index.php",
       "use": "vercel-php@0.7.2"
     }
   ],
   "routes": [
-    {
-      "src": "/api/index.php",
-      "dest": "api/index.php"
-    },
     {
       "src": "/(.*)",
       "headers": {
@@ -18,7 +14,7 @@
         "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type, Authorization, Accept"
       },
-      "dest": "api/index.php"
+      "dest": "handler/index.php"
     }
   ],
   "env": {
