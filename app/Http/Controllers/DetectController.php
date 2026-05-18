@@ -20,49 +20,51 @@ class DetectController extends Controller
      * persist detections, and return JSON to the browser.
      */
     public function detect(Request $request)
-    {
-        $request->validate([
-            'image' => 'required|image|mimes:jpeg,png,webp|max:10240',
-        ]);
- 
-        try {
-            // 1. Save the uploaded frame temporarily
-            $image   = $request->file('image');
-            $tmpPath = $image->store('tmp_frames', 'local');
-            $absPath = storage_path("app/{$tmpPath}");
- 
-            // 2. Call Python YOLO detection service
-            $detections = app(PythonDetectionService::class)->detect($absPath);
- 
-            // 3. Optionally save the frame permanently for history
-            $savedPath = $image->store('detections', 'public');
- 
-            // 4. Persist each detection to the DB
-            foreach ($detections as $det) {
-                Detection::create([
-                    'label'      => $det['label'],
-                    'category'   => $det['category'],   // 'B3' or 'Non-B3'
-                    'confidence' => $det['confidence'],
-                    'bbox'       => json_encode($det['bbox']),
-                    'image_path' => $savedPath,
-                ]);
-            }
- 
-            // 5. Clean up tmp file
-            Storage::disk('local')->delete($tmpPath);
- 
-            return response()->json([
-                'success'    => true,
-                'detections' => $detections,
+{
+    $request->validate([
+        'image' => 'required|image|mimes:jpeg,png,webp|max:10240',
+    ]);
+
+    try {
+        // 1. Simpan gambar ke folder /tmp (Satu-satunya folder yang bisa ditulis di Vercel)
+        $image = $request->file('image');
+        $fileName = time() . '_' . $image->getClientOriginalName();
+        
+        // Simpan nama file ke variabel agar tidak 'undefined' di bawah
+        $tmpPath = "/tmp/{$fileName}"; 
+        $image->move('/tmp', $fileName);
+
+        // 2. Panggil Python YOLO detection service menggunakan path absolut
+        $detections = app(PythonDetectionService::class)->detect($tmpPath);
+
+        // 3. Simpan data ke Database (Database Supabase sudah aman)
+        foreach ($detections as $det) {
+            Detection::create([
+                'label'      => $det['label'],
+                'category'   => $det['category'],
+                'confidence' => $det['confidence'],
+                'bbox'       => json_encode($det['bbox']),
+                'image_path' => 'url_atau_path_cloud_storage_kamu', // Vercel tidak bisa simpan file permanen
             ]);
- 
-        } catch (\Exception $e) {
-            Log::error('Detection error: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Terjadi kesalahan saat memproses gambar.',
-            ], 500);
         }
+
+        // 4. Bersihkan file sementara di /tmp agar tidak penuh
+        if (file_exists($tmpPath)) {
+            unlink($tmpPath);
+        }
+
+        return response()->json([
+            'success'    => true,
+            'detections' => $detections,
+        ]);
+
+    } catch (\Exception $e) {
+        Log::error('Detection error: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => 'Gagal memproses gambar: ' . $e->getMessage(),
+        ], 500);
     }
+}
 }
  
