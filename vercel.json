@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "buildCommand": "curl -sS https://getcomposer.org/installer | php && php composer.phar install --no-dev --optimize-autoloader",
   "functions": {
     "api/index.php": { "runtime": "vercel-php@0.7.2" }
   },
