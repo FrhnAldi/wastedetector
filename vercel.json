@@ -1,8 +1,11 @@
 {
   "version": 2,
-  "functions": {
-    "vercel-app/index.php": { "runtime": "vercel-php@0.7.2" }
-  },
+  "builds": [
+    {
+      "src": "api/index.php",
+      "use": "vercel-php@0.7.2"
+    }
+  ],
   "routes": [
     {
       "src": "/(.*)",
@@ -11,7 +14,7 @@
         "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type, Authorization, Accept"
       },
-      "dest": "vercel-app/index.php"
+      "dest": "api/index.php"
     }
   ],
   "env": {
