@@ -908,7 +908,7 @@
 /* ============================================================
    STATE
 ============================================================ */
-const API_DETECT_URL = "{{ url('/api/detect') }}";
+const API_DETECT_URL = "/api/detect";
 const CSRF_TOKEN     = document.querySelector('meta[name=csrf-token]')?.content || '';
 
 let stream         = null;
