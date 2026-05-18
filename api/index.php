@@ -1,5 +1,5 @@
 <?php
-// Debug: cek apakah request sampai ke sini
-error_log('REQUEST URI: ' . $_SERVER['REQUEST_URI']);
+
+chdir(__DIR__ . '/../');
 
 require __DIR__ . '/../public/index.php';
