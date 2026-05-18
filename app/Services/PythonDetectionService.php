@@ -10,7 +10,7 @@ class PythonDetectionService
     public function detect($imagePath)
     {
         // Ingat ganti link ini setelah Render kamu LIVE
-        $url = "https://waste-ai-api.onrender.com/predict";
+        $url = "https://waste-ai-api.onrender.com/detect";
 
         try {
             $response = Http::attach(
