@@ -1,4 +1,5 @@
 <?php
+// Debug: cek apakah request sampai ke sini
+error_log('REQUEST URI: ' . $_SERVER['REQUEST_URI']);
 
-// Mengarahkan request ke file index.php bawaan Laravel di folder public
 require __DIR__ . '/../public/index.php';
