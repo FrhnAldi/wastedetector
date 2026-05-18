@@ -3,34 +3,34 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Log; // Tambahkan ini
 
 class PythonDetectionService
 {
-    private string $baseUrl;
-
-    public function __construct()
+    public function detect($imagePath)
     {
-        $this->baseUrl = config('services.python_yolo.url', 'http://127.0.0.1:8001');
-    }
+        // Ingat ganti link ini setelah Render kamu LIVE
+        $url = "https://waste-ai-api.onrender.com/predict";
 
-    public function detect(string $imagePath): array
-    {
-        $response = Http::timeout(30)
-            ->attach('image', file_get_contents($imagePath), basename($imagePath))
-            ->post("{$this->baseUrl}/detect");
+        try {
+            $response = Http::attach(
+                'image', 
+                file_get_contents($imagePath), 
+                basename($imagePath)
+            )->post($url);
 
-        if ($response->failed()) {
-            Log::error("Python YOLO service error: " . $response->body());
-            throw new \RuntimeException("Python detection service returned error: " . $response->status());
+            if ($response->successful()) {
+                return $response->json();
+            }
+
+            // Catat log jika API Render mengembalikan error (misal error 500)
+            Log::error("Render AI Error: " . $response->status() . " - " . $response->body());
+            return [];
+
+        } catch (\Exception $e) {
+            // Catat log jika gagal konek ke server Render (misal timeout)
+            Log::error("Gagal koneksi ke Render: " . $e->getMessage());
+            return [];
         }
-
-        $data = $response->json();
-
-        if (!isset($data['detections'])) {
-            throw new \RuntimeException("Unexpected response format from Python service.");
-        }
-
-        return $data['detections'];
     }
 }
