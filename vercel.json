@@ -4,6 +4,15 @@
     "api/index.php": { "runtime": "vercel-php@0.7.2" }
   },
   "routes": [
+    {
+      "src": "/api/(.*)",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, X-CSRF-TOKEN, Accept"
+      },
+      "dest": "api/index.php"
+    },
     { "src": "/(.*)", "dest": "api/index.php" }
   ],
   "env": {
