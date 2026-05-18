@@ -24,6 +24,11 @@
     "VIEW_COMPILED_PATH": "/tmp",
     "SESSION_DRIVER": "array",
     "CACHE_DRIVER": "array",
-    "BOOTSTRAP_CACHE_PATH": "/tmp"
+    "DB_CONNECTION": "pgsql",
+    "DB_HOST": "aws-1-ap-northeast-1.pooler.supabase.com",
+    "DB_PORT": "6543",
+    "DB_DATABASE": "postgres",
+    "DB_USERNAME": "postgres.iedfdptonyanabcxnbft",
+    "DB_PASSWORD": "Aldi_Nugraha"
   }
 }
