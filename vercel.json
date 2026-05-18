@@ -5,25 +5,14 @@
   },
   "routes": [
     {
-      "src": "/api/(.*)",
-      "methods": ["OPTIONS"],
+      "src": "/(.*)",
       "headers": {
         "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, X-CSRF-TOKEN, Accept"
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization, Accept"
       },
       "dest": "api/index.php"
-    },
-    {
-      "src": "/api/(.*)",
-      "headers": {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, X-CSRF-TOKEN, Accept"
-      },
-      "dest": "api/index.php"
-    },
-    { "src": "/(.*)", "dest": "api/index.php" }
+    }
   ],
   "env": {
     "APP_CONFIG_CACHE": "/tmp/config.php",
@@ -35,7 +24,7 @@
     "SESSION_DRIVER": "array",
     "CACHE_DRIVER": "array",
     "DB_CONNECTION": "pgsql",
-    "DB_HOST": "aws-1-ap-northeast-1.pooler.supabase.com",
+    "DB_HOST": "aws-0-ap-northeast-1.pooler.supabase.com",
     "DB_PORT": "6543",
     "DB_DATABASE": "postgres",
     "DB_USERNAME": "postgres.iedfdptonyanabcxnbft",
