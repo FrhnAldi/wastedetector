@@ -26,3 +26,7 @@ Route::get('/edukasi',   [EdukasiController::class, 'index'])->name('edukasi');
 
 // API for AI detection (called by JS frontend)
 Route::post('/api/detect', [DetectController::class, 'detect'])->name('api.detect');
+
+Route::get('/test-web', function () {
+    return response()->json(['status' => 'web ok']);
+});
