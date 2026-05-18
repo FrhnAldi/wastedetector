@@ -1,13 +1,17 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
+chdir(__DIR__ . '/../');
 
-// Di dalam routes/api.php
-use App\Http\Controllers\DetectController;
+define('LARAVEL_START', microtime(true));
 
-Route::post('/detect', [DetectController::class, 'detect']);
+require __DIR__ . '/../vendor/autoload.php';
 
-Route::get('/test', function () {
-    return response()->json(['status' => 'ok']);
-});
+$app = require_once __DIR__ . '/../bootstrap/app.php';
+
+$kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
+
+$response = $kernel->handle(
+    $request = Illuminate\Http\Request::capture()
+)->send();
+
+$kernel->terminate($request, $response);
