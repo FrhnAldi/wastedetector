@@ -13,7 +13,7 @@ class PythonDetectionService
         $url = "https://waste-ai-api.onrender.com/detect";
 
         try {
-            $response = Http::attach(
+            $response = Http::timeout(120)->attach(
                 'image', 
                 file_get_contents($imagePath), 
                 basename($imagePath)
