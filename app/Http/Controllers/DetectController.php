@@ -35,7 +35,8 @@ class DetectController extends Controller
         $image->move('/tmp', $fileName);
 
         // 2. Panggil Python YOLO detection service menggunakan path absolut
-        $detections = app(PythonDetectionService::class)->detect($tmpPath);
+        $response = app(PythonDetectionService::class)->detect($tmpPath);
+        $detections = $response['detections'] ?? [];
 
         // 3. Simpan data ke Database (Database Supabase sudah aman)
         foreach ($detections as $det) {
