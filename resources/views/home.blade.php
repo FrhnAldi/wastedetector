@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'WasteGuard — Deteksi Sampah B3 & Non-B3')
+@section('title', 'WasteDetector — Deteksi Sampah B3 & Non-B3')
 
 @push('styles')
 <style>
@@ -828,7 +828,7 @@
         <div class="section-label" style="background:rgba(34,197,94,.15);border-color:rgba(34,197,94,.3);color:var(--green-400)">
             <i class="fas fa-chart-bar"></i> Statistik Platform
         </div>
-        <h2 class="section-title" style="color:white">WasteGuard dalam Angka</h2>
+        <h2 class="section-title" style="color:white">WasteDetector dalam Angka</h2>
     </div>
     <div class="stats-grid" style="position:relative;z-index:1">
         <div class="stat-box">

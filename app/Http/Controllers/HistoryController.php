@@ -10,14 +10,15 @@ class HistoryController extends Controller
 {
     /**
      * Tampilkan halaman riwayat dengan pagination & statistik.
+     * ✅ FIX: Tidak pakai filter user_uuid agar semua deteksi tampil.
      */
     public function index()
     {
-        $detections     = Detection::latest()->paginate(15);
+        $detections      = Detection::latest()->paginate(15);
         $totalDetections = Detection::count();
-        $totalB3        = Detection::where('category', 'B3')->count();
-        $totalNonB3     = Detection::where('category', 'Non-B3')->count();
-        $avgAccuracy    = Detection::count()
+        $totalB3         = Detection::where('category', 'B3')->count();
+        $totalNonB3      = Detection::where('category', 'Non-B3')->count();
+        $avgAccuracy     = $totalDetections > 0
             ? round(Detection::avg('confidence') * 100)
             : null;
 
@@ -41,7 +42,6 @@ class HistoryController extends Controller
             'category'   => $detection->category,
             'confidence' => $detection->confidence,
             'bbox'       => $detection->bbox,
-            // image_url: gunakan Storage::url agar path benar (perlu storage:link)
             'image_url'  => $detection->image_path
                                 ? Storage::url($detection->image_path)
                                 : null,
@@ -54,7 +54,6 @@ class HistoryController extends Controller
      */
     public function destroy(Detection $detection)
     {
-        // Hapus file dari storage supaya tidak menumpuk
         if ($detection->image_path && Storage::disk('public')->exists($detection->image_path)) {
             Storage::disk('public')->delete($detection->image_path);
         }
@@ -70,14 +69,12 @@ class HistoryController extends Controller
      */
     public function clear()
     {
-        // Ambil semua path sebelum dihapus
         $paths = Detection::whereNotNull('image_path')
                           ->pluck('image_path')
                           ->toArray();
 
         Detection::truncate();
 
-        // Hapus file satu per satu (bukan deleteDirectory agar folder tetap ada)
         foreach ($paths as $path) {
             if (Storage::disk('public')->exists($path)) {
                 Storage::disk('public')->delete($path);
@@ -99,7 +96,7 @@ class HistoryController extends Controller
         foreach ($detections as $det) {
             $csv .= implode(',', [
                 $det->id,
-                '"' . $det->label . '"',
+                '"' . str_replace('"', '""', $det->label) . '"',
                 $det->category,
                 round($det->confidence * 100),
                 $det->created_at->format('d/m/Y H:i'),

@@ -20,6 +20,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
         //
     })->create();
 
-$app->useStoragePath('/tmp');
-
+if (env('APP_ENV') !== 'local') {
+    $app->useStoragePath('/tmp');
+}
 return $app;

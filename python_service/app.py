@@ -17,7 +17,7 @@ logger = logging.getLogger("wasteguard")
 
 # --- Konfigurasi Path Model ---
 YOLO_MODEL_PATH = "models/yolov8n.pt"
-CLASSIFIER_FILE = "models/model_b3_final.h5"
+CLASSIFIER_FILE = "models/model_b3.h5"
 
 model_yolo = None
 model_classifier = None
@@ -61,7 +61,7 @@ def load_all_models():
         # Pemanasan model
         dummy = np.zeros((1, 224, 224, 3), dtype=np.float32)
         model_classifier.predict(dummy, verbose=0)
-        logger.info("✅ Classifier (model_b3_final.h5) berhasil dimuat!")
+        logger.info("✅ Classifier (model_b3.h5) berhasil dimuat!")
         model_classifier.summary(print_fn=logger.info)
 
     except Exception as e:

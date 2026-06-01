@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'WasteGuard — Deteksi Sampah B3')</title>
+    <title>@yield('title', 'WasteDetector — Deteksi Sampah B3')</title>
     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -346,7 +346,7 @@
 <nav class="navbar" id="mainNav">
     <a href="{{ url('/') }}" class="nav-brand">
         <div class="nav-brand-icon"><i class="fas fa-recycle"></i></div>
-        <span class="nav-brand-text">Waste<span>Guard</span></span>
+        <span class="nav-brand-text">Waste<span>Detector</span></span>
     </a>
 
     <ul class="nav-links" id="navLinks">
@@ -414,7 +414,7 @@
     </div>
 
     <div class="footer-bottom">
-        <span>© 2025 WasteGuard. Dibuat dengan <i class="fas fa-heart" style="color:#f87171"></i> untuk lingkungan Indonesia.</span>
+        <span>© 2025 WasteDetector. Dibuat dengan <i class="fas fa-heart" style="color:#f87171"></i> untuk lingkungan Indonesia.</span>
         <span>Didukung oleh YOLO v8 & Python AI Engine</span>
     </div>
 </footer>
