@@ -1,4 +1,5 @@
 <?php
+// app/Http/Controllers/DetectController.php
 
 namespace App\Http\Controllers;
 
@@ -29,33 +30,30 @@ class DetectController extends Controller
             'longitude' => 'nullable|numeric|between:-180,180',
         ]);
 
-        // ✅ FIX: Pastikan cookie guest_uuid selalu ada.
-        // Jika belum ada, buat sekarang dan sertakan di response.
-        $userUuid = $request->cookie('guest_uuid');
+        // Cookie guest_uuid — buat jika belum ada
+        $userUuid  = $request->cookie('guest_uuid');
         $newCookie = null;
         if (! $userUuid) {
             $userUuid  = (string) Str::uuid();
-            $newCookie = cookie('guest_uuid', $userUuid, 60 * 24 * 365); // 1 tahun
+            $newCookie = cookie('guest_uuid', $userUuid, 60 * 24 * 365);
         }
 
         $image = $request->file('image');
 
-        // 1. Simpan file sementara agar bisa dikirim ke Python
+        // 1. Simpan sementara
         $tmpPath = $image->store('tmp_frames', 'local');
         $absPath = storage_path("app/{$tmpPath}");
 
-        // 2. Panggil Python YOLO service
+        // 2. Panggil Python YOLO
         $usedMock = false;
         try {
             $detections = app(PythonDetectionService::class)->detect($absPath);
         } catch (\Throwable $e) {
-            // Hapus tmp — file sudah tidak dibutuhkan (gagal kirim ke Python)
             Storage::disk('local')->delete($tmpPath);
             $tmpPath = null;
 
             Log::error('[YOLO] ' . $e->getMessage());
 
-            // MOCK MODE — aktif saat YOLO_MOCK_MODE=true di .env
             if (config('app.yolo_mock_mode', false)) {
                 $detections = $this->mockDetections();
                 $usedMock   = true;
@@ -73,10 +71,10 @@ class DetectController extends Controller
             }
         }
 
-        // 3. Simpan gambar permanen (jika ada deteksi dan bukan mock)
+        // 3. Simpan gambar permanen
         $savedPath = null;
         if (! $usedMock && $tmpPath && count($detections) > 0) {
-            $destPath = "detections/{$image->hashName()}";
+            $destPath = 'detections/' . $image->hashName();
             Storage::disk('public')->put(
                 $destPath,
                 Storage::disk('local')->get($tmpPath)
@@ -84,7 +82,7 @@ class DetectController extends Controller
             $savedPath = $destPath;
         }
 
-        // 4. Bersihkan tmp
+        // 4. Hapus tmp
         if ($tmpPath) {
             Storage::disk('local')->delete($tmpPath);
         }
@@ -93,41 +91,54 @@ class DetectController extends Controller
         $lat = $request->filled('latitude')  ? (float) $request->input('latitude')  : null;
         $lng = $request->filled('longitude') ? (float) $request->input('longitude') : null;
 
-        // 6. ✅ FIX: Simpan ke database untuk SEMUA deteksi (tidak bergantung pada kondisi lain)
-        //    Sebelumnya ada bug: jika $userUuid null, data tidak tersimpan karena
-        //    cookie belum pernah di-set di sisi client.
+        // 6. ✅ PERBAIKAN UTAMA: Simpan ke DB dengan kolom yang lengkap & benar
+        //    - bbox disimpan sebagai JSON string (model cast array → otomatis decode)
+        //    - error dilog dengan pesan lebih detail untuk debugging
+        $savedCount = 0;
         foreach ($detections as $det) {
-            if (! is_array($det) || empty($det['label'])) continue;
+            if (! is_array($det) || empty($det['label'])) {
+                Log::warning('[DB] Skip deteksi tidak valid: ' . json_encode($det));
+                continue;
+            }
 
             try {
                 Detection::create([
                     'user_uuid'  => $userUuid,
                     'label'      => $det['label'],
-                    'category'   => $det['category']   ?? 'Non-B3',
-                    'confidence' => $det['confidence']  ?? 0.0,
-                    'bbox'       => json_encode($det['bbox'] ?? []),
+                    'category'   => $det['category']    ?? 'Non-B3',
+                    'confidence' => (float) ($det['confidence'] ?? 0.0),
+                    'bbox'       => $det['bbox']         ?? [],   // cast array di model
                     'image_path' => $savedPath,
                     'latitude'   => $lat,
                     'longitude'  => $lng,
                 ]);
+                $savedCount++;
             } catch (\Throwable $e) {
-                Log::error('[DB] Gagal simpan deteksi: ' . $e->getMessage());
+                // ✅ Log detail penuh agar mudah debug
+                Log::error('[DB] Gagal simpan deteksi: ' . $e->getMessage(), [
+                    'det'  => $det,
+                    'lat'  => $lat,
+                    'lng'  => $lng,
+                    'sql'  => method_exists($e, 'getSql') ? $e->getSql() : null,
+                ]);
             }
         }
+
+        Log::info("[DB] Tersimpan {$savedCount} dari " . count($detections) . " deteksi.");
 
         $json = response()->json([
             'success'    => true,
             'detections' => array_values($detections),
             'total'      => count($detections),
+            'saved'      => $savedCount,   // ✅ info berapa yang tersimpan
             'location'   => $lat ? ['lat' => $lat, 'lng' => $lng] : null,
         ]);
 
-        // Pasang cookie baru jika baru dibuat
         return $newCookie ? $json->withCookie($newCookie) : $json;
     }
 
     // ──────────────────────────────────────────────────────────
-    // MOCK DETECTIONS — untuk test UI tanpa Python
+    // MOCK DETECTIONS
     // ──────────────────────────────────────────────────────────
     private function mockDetections(): array
     {
@@ -146,8 +157,6 @@ class DetectController extends Controller
     // ──────────────────────────────────────────────────────────
     public function mapPoints(Request $request): JsonResponse
     {
-        // ✅ FIX: Tampilkan semua titik, tidak hanya milik user ini.
-        // Untuk multi-user, uncomment kondisi forUser() di bawah.
         $points = Detection::withLocation()
             ->latest()
             ->limit(200)

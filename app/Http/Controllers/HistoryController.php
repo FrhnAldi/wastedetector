@@ -1,17 +1,14 @@
 <?php
+// app/Http/Controllers/HistoryController.php
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Detection;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class HistoryController extends Controller
 {
-    /**
-     * Tampilkan halaman riwayat dengan pagination & statistik.
-     * ✅ FIX: Tidak pakai filter user_uuid agar semua deteksi tampil.
-     */
     public function index()
     {
         $detections      = Detection::latest()->paginate(15);
@@ -31,9 +28,6 @@ class HistoryController extends Controller
         ));
     }
 
-    /**
-     * Kembalikan detail satu deteksi sebagai JSON (untuk modal).
-     */
     public function show(Detection $detection)
     {
         return response()->json([
@@ -45,28 +39,23 @@ class HistoryController extends Controller
             'image_url'  => $detection->image_path
                                 ? Storage::url($detection->image_path)
                                 : null,
+            'latitude'   => $detection->latitude,
+            'longitude'  => $detection->longitude,
             'created_at' => $detection->created_at->format('d M Y, H:i'),
         ]);
     }
 
-    /**
-     * Hapus satu item riwayat beserta file gambarnya.
-     */
     public function destroy(Detection $detection)
     {
         if ($detection->image_path && Storage::disk('public')->exists($detection->image_path)) {
             Storage::disk('public')->delete($detection->image_path);
         }
-
         $detection->delete();
 
         return redirect()->route('history.index')
                          ->with('success', 'Riwayat berhasil dihapus.');
     }
 
-    /**
-     * Hapus SEMUA riwayat + semua file gambar deteksi.
-     */
     public function clear()
     {
         $paths = Detection::whereNotNull('image_path')
@@ -85,20 +74,19 @@ class HistoryController extends Controller
                          ->with('success', 'Semua riwayat berhasil dihapus.');
     }
 
-    /**
-     * Export riwayat sebagai CSV.
-     */
     public function export()
     {
         $detections = Detection::latest()->get();
 
-        $csv = "ID,Label,Kategori,Kepercayaan (%),Waktu\n";
+        $csv = "ID,Label,Kategori,Kepercayaan (%),Latitude,Longitude,Waktu\n";
         foreach ($detections as $det) {
             $csv .= implode(',', [
                 $det->id,
                 '"' . str_replace('"', '""', $det->label) . '"',
                 $det->category,
                 round($det->confidence * 100),
+                $det->latitude  ?? '',
+                $det->longitude ?? '',
                 $det->created_at->format('d/m/Y H:i'),
             ]) . "\n";
         }
